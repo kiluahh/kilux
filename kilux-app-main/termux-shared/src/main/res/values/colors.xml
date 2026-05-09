@@ -20,4 +20,6 @@
 
     <color name="blue_link_light">#0969DA</color>
     <color name="blue_link_dark">#58A6FF</color>
+
+    <color name="toolbar_background">#FF252526</color>
 </resources>

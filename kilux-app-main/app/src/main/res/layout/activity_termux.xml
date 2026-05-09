@@ -22,9 +22,9 @@
             android:layout_height="40dp"
             android:layout_alignParentTop="true"
             android:background="@color/toolbar_background"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:navigationIcon="@drawable/ic_hamburger"
-            app:title=""
-            app:titleTextColor="@android:color/white" />
+            app:title="" />
 
         <androidx.drawerlayout.widget.DrawerLayout
             android:id="@+id/drawer_layout"

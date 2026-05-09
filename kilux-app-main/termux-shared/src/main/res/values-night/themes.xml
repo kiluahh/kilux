@@ -19,11 +19,13 @@
         <item name="colorOnSecondary">@color/black</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/termuxToolbarBackground</item>
         <item name="colorPrimaryDark" tools:targetApi="l">?attr/colorPrimary</item>
 
         <!-- Text color. -->
         <item name="android:textColorLink">@color/blue_link_dark</item>
+
+        <item name="termuxToolbarBackground">@color/toolbar_background</item>
     </style>
 
     <!-- BaseActivity DayNight NoActionBar theme. -->
