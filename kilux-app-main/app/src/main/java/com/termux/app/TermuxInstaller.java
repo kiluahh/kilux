@@ -107,6 +107,7 @@ final class TermuxInstaller {
             if (TermuxFileUtils.isTermuxPrefixDirectoryEmpty()) {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
+                writeMotdFile();
                 whenDone.run();
                 return;
             }
@@ -375,6 +376,21 @@ final class TermuxInstaller {
     }
 
     private static void writeMotdFile() {
+        File versionFile = new File(TERMUX_PREFIX_DIR_PATH + "/etc/.motd_version");
+        try {
+            if (versionFile.exists()) {
+                byte[] bytes = new byte[(int) versionFile.length()];
+                java.io.FileInputStream fis = new java.io.FileInputStream(versionFile);
+                fis.read(bytes);
+                fis.close();
+                String storedVersion = new String(bytes).trim();
+                if (com.termux.BuildConfig.VERSION_NAME.equals(storedVersion))
+                    return;
+            }
+        } catch (Exception e) {
+            // Ignore, rewrite motd
+        }
+
         File motdFile = new File(TERMUX_PREFIX_DIR_PATH + "/etc/motd");
         String motdContent = "Welcome to Kilux! This is a special Termux version based on Termux 0.118.0. \n\n"
             + "Docs:       https://termux.dev/docs\n"
@@ -389,11 +405,17 @@ final class TermuxInstaller {
             + " - X11:     pkg install x11-repo\n\n"
             + "For fixing any repository issues,\n"
             + "try 'termux-change-repo' command.\n\n"
-            + "Report issues at https://termux.dev/issues or https://github.com/kiluahh/kilux\n";
+            + "Report issues at https://termux.dev/issues or https://github.com/kiluahh/kilux\n"
+            + "\n"
+            + "Type 'exit' or Ctrl+D to end the current session.\n";
         try {
             FileOutputStream out = new FileOutputStream(motdFile);
             out.write(motdContent.getBytes());
             out.close();
+
+            FileOutputStream vout = new FileOutputStream(versionFile);
+            vout.write(com.termux.BuildConfig.VERSION_NAME.getBytes());
+            vout.close();
         } catch (Exception e) {
             Logger.logError(LOG_TAG, "Failed to write motd file: " + e.getMessage());
         }
