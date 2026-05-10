@@ -28,6 +28,7 @@ import com.termux.shared.termux.shell.command.environment.TermuxShellEnvironment
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -177,7 +178,8 @@ public class TermuxUtils {
      * or disabled, otherwise {@code null}.
      */
     public static String isTermuxAPIAppInstalled(@NonNull final Context context) {
-        return PackageUtils.isAppInstalled(context, TermuxConstants.TERMUX_API_APP_NAME, TermuxConstants.TERMUX_API_PACKAGE_NAME);
+        // API is now integrated into the main app
+        return null;
     }
 
     /**
@@ -481,6 +483,18 @@ public class TermuxUtils {
         if (context.getPackageName().equals(TermuxConstants.TERMUX_PACKAGE_NAME)) {
             AndroidUtils.appendPropertyToMarkdown(markdownString, "TERMUX_APP_PACKAGE_MANAGER", TermuxBootstrap.TERMUX_APP_PACKAGE_MANAGER);
             AndroidUtils.appendPropertyToMarkdown(markdownString, "TERMUX_APP_PACKAGE_VARIANT", TermuxBootstrap.TERMUX_APP_PACKAGE_VARIANT);
+            AndroidUtils.appendPropertyToMarkdown(markdownString, "TERMUX_API", TermuxConstants.TERMUX_API_VERSION_NAME + " (integrated)");
+
+            // Check if termux-api scripts/binary are installed in prefix
+            File apiBinary = new File(TermuxConstants.TERMUX_LIBEXEC_PREFIX_DIR_PATH, "termux-api");
+            File apiScript = new File(TermuxConstants.TERMUX_BIN_PREFIX_DIR_PATH, "termux-battery-status");
+            String apiPackageStatus;
+            if (apiBinary.exists() && apiScript.exists()) {
+                apiPackageStatus = TermuxConstants.TERMUX_API_PACKAGE_VERSION + " (installed)";
+            } else {
+                apiPackageStatus = "not installed";
+            }
+            AndroidUtils.appendPropertyToMarkdown(markdownString, "TERMUX_API_PACKAGE", apiPackageStatus);
         }
 
         Error error;

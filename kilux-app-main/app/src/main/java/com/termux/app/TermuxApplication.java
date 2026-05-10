@@ -71,6 +71,10 @@ public class TermuxApplication extends Application {
         if (isTermuxFilesDirectoryAccessible) {
             TermuxShellEnvironment.writeEnvironmentToFile(this);
         }
+
+        // Initialize integrated Termux:API
+        com.termux.api.util.ResultReturner.setContext(this);
+        com.termux.api.SocketListener.createSocketListener(this);
     }
 
     public static void setLogConfig(Context context) {

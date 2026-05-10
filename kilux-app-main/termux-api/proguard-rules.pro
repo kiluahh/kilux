@@ -1,0 +1,4 @@
+-dontobfuscate
+-keep class com.termux.api.TermuxApiReceiver { *; }
+-keep class com.termux.api.SocketListener { *; }
+-keep class com.termux.api.KeepAliveService { *; }

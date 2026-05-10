@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Library module: components declared in app module manifest for full visibility -->
+</manifest>

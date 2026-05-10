@@ -219,6 +219,9 @@ final class TermuxInstaller {
 
                     Logger.logInfo(LOG_TAG, "Bootstrap packages installed successfully.");
 
+                    // Install termux-api scripts and binaries
+                    installTermuxApiFiles(activity);
+
                     // Write custom welcome message
                     writeMotdFile();
 
@@ -418,6 +421,73 @@ final class TermuxInstaller {
             vout.close();
         } catch (Exception e) {
             Logger.logError(LOG_TAG, "Failed to write motd file: " + e.getMessage());
+        }
+    }
+
+    private static void installTermuxApiFiles(Context context) {
+        try {
+            Logger.logInfo(LOG_TAG, "Installing termux-api scripts and binaries.");
+
+            // Map Android ABI to Termux arch name
+            String androidAbi = android.os.Build.SUPPORTED_ABIS[0];
+            String termuxArch;
+            switch (androidAbi) {
+                case "arm64-v8a":  termuxArch = "aarch64"; break;
+                case "armeabi-v7a": termuxArch = "arm"; break;
+                case "x86":         termuxArch = "i686"; break;
+                case "x86_64":      termuxArch = "x86_64"; break;
+                default:
+                    Logger.logError(LOG_TAG, "Unknown ABI: " + androidAbi + ", defaulting to aarch64");
+                    termuxArch = "aarch64";
+                    break;
+            }
+
+            String prefixPath = TERMUX_PREFIX_DIR_PATH;
+
+            // Copy scripts from assets to $PREFIX/bin/
+            String[] scripts = context.getAssets().list("termux-api/scripts");
+            if (scripts != null) {
+                for (String script : scripts) {
+                    File destFile = new File(prefixPath + "/bin/" + script);
+                    try (java.io.InputStream in = context.getAssets().open("termux-api/scripts/" + script);
+                         FileOutputStream out = new FileOutputStream(destFile)) {
+                        byte[] buf = new byte[4096];
+                        int len;
+                        while ((len = in.read(buf)) > 0)
+                            out.write(buf, 0, len);
+                    }
+                    Os.chmod(destFile.getAbsolutePath(), 0700);
+                }
+                Logger.logInfo(LOG_TAG, "Copied " + scripts.length + " termux-api scripts to $PREFIX/bin/");
+            }
+
+            // Copy binaries from assets to $PREFIX/libexec/ and $PREFIX/lib/
+            String binaryAssetPath = "termux-api/binaries/" + termuxArch;
+            String[] binaries = context.getAssets().list(binaryAssetPath);
+            if (binaries != null) {
+                for (String binary : binaries) {
+                    String destSubdir = binary.endsWith(".so") ? "/lib/" : "/libexec/";
+                    File destFile = new File(prefixPath + destSubdir + binary);
+                    try (java.io.InputStream in = context.getAssets().open(binaryAssetPath + "/" + binary);
+                         FileOutputStream out = new FileOutputStream(destFile)) {
+                        byte[] buf = new byte[4096];
+                        int len;
+                        while ((len = in.read(buf)) > 0)
+                            out.write(buf, 0, len);
+                    }
+                    Os.chmod(destFile.getAbsolutePath(), 0700);
+                }
+            }
+
+            // Create symlink: termux-api -> termux-api-broadcast
+            File apiLink = new File(prefixPath + "/libexec/termux-api");
+            if (!apiLink.exists()) {
+                Os.symlink("termux-api-broadcast", apiLink.getAbsolutePath());
+            }
+
+            Logger.logInfo(LOG_TAG, "Termux-api files installed successfully.");
+        } catch (Exception e) {
+            Logger.logStackTraceWithMessage(LOG_TAG, "Failed to install termux-api files", e);
         }
     }
 

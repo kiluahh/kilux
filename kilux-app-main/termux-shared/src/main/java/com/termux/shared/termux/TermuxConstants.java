@@ -350,6 +350,10 @@ public final class TermuxConstants {
     public static final String TERMUX_APP_NAME = "Kilux"; // Default: "Termux"
     /** Termux app based on version */
     public static final String TERMUX_APP_BASED_ON = "0.118.0";
+    /** Termux:API Android module version (integrated) */
+    public static final String TERMUX_API_VERSION_NAME = "0.53.0";
+    /** Termux:API scripts/binary package version (bundled) */
+    public static final String TERMUX_API_PACKAGE_VERSION = "0.59.1";
     /** Termux package name */
     public static final String TERMUX_PACKAGE_NAME = "com.termux"; // Default: "com.termux"
     /** Termux GitHub repo name */
