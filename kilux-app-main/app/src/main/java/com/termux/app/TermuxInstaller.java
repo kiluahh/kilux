@@ -453,8 +453,12 @@ final class TermuxInstaller {
                          FileOutputStream out = new FileOutputStream(destFile)) {
                         byte[] buf = new byte[4096];
                         int len;
-                        while ((len = in.read(buf)) > 0)
-                            out.write(buf, 0, len);
+                        while ((len = in.read(buf)) > 0) {
+                            for (int i = 0; i < len; i++) {
+                                byte b = buf[i];
+                                if (b != '\r') out.write(b);
+                            }
+                        }
                     }
                     Os.chmod(destFile.getAbsolutePath(), 0700);
                 }
