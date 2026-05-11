@@ -155,6 +155,20 @@
             android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar" />
 
         <activity
+            android:name=".app.activities.FileManagerActivity"
+            android:exported="false"
+            android:label="@string/title_file_manager"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
+            android:name=".app.activities.EditorActivity"
+            android:exported="false"
+            android:label="@string/title_editor"
+            android:theme="@style/Theme.TermuxApp.DayNight.NoActionBar"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
             android:name=".shared.activities.ReportActivity"
             android:theme="@style/Theme.MarkdownViewActivity.DayNight"
             android:documentLaunchMode="intoExisting" />
@@ -218,6 +232,16 @@
             <intent-filter>
                 <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
             </intent-filter>
+        </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
 
         <provider

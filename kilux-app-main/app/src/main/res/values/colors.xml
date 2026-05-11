@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="toolbar_background">#FF252526</color>
+
+    <color name="file_icon_folder">#D4A853</color>
+    <color name="file_icon_text">#1565C0</color>
+    <color name="file_icon_image">#2E7D32</color>
+    <color name="file_icon_video">#C62828</color>
+    <color name="file_icon_other">#757575</color>
 </resources>

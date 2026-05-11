@@ -235,4 +235,29 @@
     <!-- Donate Preference -->
     <string name="donate_preference_title">Donate</string>
 
+
+
+    <!-- File Manager -->
+    <string name="action_open_file_manager">File Manager</string>
+    <string name="title_file_manager">Files</string>
+    <string name="action_new_folder">New folder</string>
+    <string name="action_new_file">New file</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_search">Search</string>
+    <string name="action_select_all">Select all</string>
+    <string name="confirm_delete_title">Delete?</string>
+    <string name="confirm_delete_message">Delete \"%s\"?</string>
+    <string name="confirm_delete_multiple">Delete %d items?</string>
+    <string name="folder_name_hint">Folder name</string>
+    <string name="rename_hint">New name</string>
+    <string name="toast_deleted">Deleted</string>
+    <string name="toast_renamed">Renamed</string>
+    <string name="toast_folder_created">Folder created</string>
+    <string name="toast_copy_error">Copy failed</string>
+
+    <string name="title_editor">Editor</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_save">Save</string>
+
 </resources>

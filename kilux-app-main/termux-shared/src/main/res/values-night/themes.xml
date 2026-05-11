@@ -9,7 +9,7 @@
     -->
     <style name="Theme.BaseActivity.DayNight.DarkActionBar" parent="Theme.MaterialComponents">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/red_400</item>
+        <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryVariant">@color/red_800</item>
         <item name="colorOnPrimary">@color/black</item>
 
@@ -44,7 +44,7 @@
      -->
     <style name="ThemeOverlay.BaseDialog.DayNight" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/red_400</item>
+        <item name="colorPrimary">@color/white</item>
         <item name="colorPrimaryVariant">@color/red_800</item>
         <item name="colorOnPrimary">@color/black</item>
 
@@ -59,6 +59,7 @@
 
         <!-- Dialog title panel style. -->
         <item name="materialAlertDialogTitlePanelStyle">@style/BaseDialog.Title.Panel</item>
+        <item name="materialAlertDialogTitleTextStyle">@style/BaseDialog.Title.Text</item>
 
         <!-- Dialog message text style. -->
         <item name="materialAlertDialogBodyTextStyle">@style/BaseDialog.Message.Text.Dark</item>
