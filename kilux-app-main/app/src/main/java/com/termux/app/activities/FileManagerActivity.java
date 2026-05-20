@@ -25,6 +25,7 @@ import com.termux.R;
 import com.termux.app.filemanager.FileItem;
 import com.termux.app.filemanager.FileListAdapter;
 import com.termux.app.filemanager.FileOperationHelper;
+import com.termux.shared.shell.command.ExecutionCommand.Runner;
 import com.termux.shared.termux.TermuxConstants;
 
 import android.content.res.Configuration;
@@ -206,8 +207,15 @@ public class FileManagerActivity extends AppCompatActivity {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(uri, getMimeType(file.getName()));
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(intent);
+
+            Intent chooser = Intent.createChooser(intent, "Open with");
+            startActivity(chooser);
+        } catch (IllegalArgumentException e) {
+            android.util.Log.e("FileManager", "FileProvider error for: " + file.getAbsolutePath(), e);
+            Toast.makeText(this, "Cannot open: file is outside accessible storage",
+                    Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
+            android.util.Log.e("FileManager", "Error opening file: " + file.getAbsolutePath(), e);
             Toast.makeText(this, "Cannot open file", Toast.LENGTH_SHORT).show();
         }
     }
@@ -275,6 +283,7 @@ public class FileManagerActivity extends AppCompatActivity {
                     ? "Deselect all" : getString(R.string.action_select_all));
         }
 
+        setMenuVisible(menu, R.id.menu_open_in_terminal, !selecting);
         setMenuVisible(menu, R.id.menu_new_folder, !selecting);
         setMenuVisible(menu, R.id.menu_new_file, !selecting);
         setMenuVisible(menu, R.id.menu_paste,
@@ -297,7 +306,10 @@ public class FileManagerActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.menu_new_folder) {
+        if (id == R.id.menu_open_in_terminal) {
+            openInTerminal();
+            return true;
+        } else if (id == R.id.menu_new_folder) {
             showNewFolderDialog();
             return true;
         } else if (id == R.id.menu_new_file) {
@@ -338,6 +350,17 @@ public class FileManagerActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void openInTerminal() {
+        Intent intent = new Intent(TermuxConstants.TERMUX_APP.TERMUX_SERVICE.ACTION_SERVICE_EXECUTE);
+        intent.setClassName(TermuxConstants.TERMUX_PACKAGE_NAME,
+                TermuxConstants.TERMUX_APP.TERMUX_SERVICE_NAME);
+        intent.putExtra(TermuxConstants.TERMUX_APP.TERMUX_SERVICE.EXTRA_WORKDIR,
+                currentDir.getAbsolutePath());
+        intent.putExtra(TermuxConstants.TERMUX_APP.TERMUX_SERVICE.EXTRA_RUNNER,
+                Runner.TERMINAL_SESSION.getName());
+        startService(intent);
     }
 
     private List<File> getSelectedFileList() {

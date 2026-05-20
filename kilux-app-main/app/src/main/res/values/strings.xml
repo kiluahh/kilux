@@ -240,6 +240,7 @@
     <!-- File Manager -->
     <string name="action_open_file_manager">File Manager</string>
     <string name="title_file_manager">Files</string>
+    <string name="action_open_in_terminal">Open in terminal</string>
     <string name="action_new_folder">New folder</string>
     <string name="action_new_file">New file</string>
     <string name="action_rename">Rename</string>

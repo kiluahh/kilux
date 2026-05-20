@@ -108,6 +108,7 @@ final class TermuxInstaller {
                 Logger.logInfo(LOG_TAG, "The termux prefix directory \"" + TERMUX_PREFIX_DIR_PATH + "\" exists but is empty or only contains specific unimportant files.");
             } else {
                 writeMotdFile();
+                patchAmWrapper();
                 whenDone.run();
                 return;
             }
@@ -221,6 +222,9 @@ final class TermuxInstaller {
 
                     // Install termux-api scripts and binaries
                     installTermuxApiFiles(activity);
+
+                    // Fix am wrapper for Android 14 broadcast issue
+                    patchAmWrapper();
 
                     // Write custom welcome message
                     writeMotdFile();
@@ -492,6 +496,101 @@ final class TermuxInstaller {
             Logger.logInfo(LOG_TAG, "Termux-api files installed successfully.");
         } catch (Exception e) {
             Logger.logStackTraceWithMessage(LOG_TAG, "Failed to install termux-api files", e);
+        }
+    }
+
+    // Marker string in our patched am wrapper to detect when re-patching is needed.
+    // Increment version when wrapper logic changes.
+    private static final String AM_PATCH_MARKER = "# Kilux patched am wrapper v2";
+
+    /**
+     * Patches the $PREFIX/bin/am wrapper to fix termux-api broadcast hanging on Android 14+.
+     *
+     * The termux-api-broadcast binary calls:
+     *   am broadcast --user $(getuid) -n com.termux.api/.TermuxApiReceiver ...
+     *
+     * But getuid() returns a Linux UID (e.g. 10123), not an Android user ID (0 = owner).
+     * On Android 14+ this invalid --user value causes the broadcast to be silently dropped,
+     * leaving termux-api-broadcast hanging forever on the socket.
+     *
+     * This wrapper strips --user and its value from broadcast commands so the default
+     * (current user) is used instead, which is the correct behavior.
+     */
+
+    private static void patchAmWrapper() {
+        try {
+            File amWrapper = new File(TERMUX_PREFIX_DIR_PATH + "/bin/am");
+            File amOrig = new File(TERMUX_PREFIX_DIR_PATH + "/bin/am.orig");
+
+            if (!amWrapper.exists()) return;
+
+            // Check if already patched
+            try (java.io.FileInputStream fis = new java.io.FileInputStream(amWrapper)) {
+                byte[] head = new byte[256];
+                int n = fis.read(head);
+                if (n > 0 && new String(head, 0, n).contains(AM_PATCH_MARKER)) return;
+            } catch (Exception ignored) {}
+
+            // Resolve real am, save original if needed
+            String realAmPath = "/system/bin/am";
+            String canonPath;
+            try {
+                canonPath = amWrapper.getCanonicalPath();
+            } catch (Exception e) {
+                canonPath = null;
+            }
+
+            if (canonPath != null && canonPath.equals("/system/bin/am")) {
+                amWrapper.delete();
+            } else if (!amOrig.exists()) {
+                amWrapper.renameTo(amOrig);
+            }
+
+            if (amOrig.exists()) {
+                realAmPath = TERMUX_PREFIX_DIR_PATH + "/bin/am.orig";
+            }
+
+            // Write wrapper: fixes package name for integrated termux-api
+            String script =
+                "#!/data/data/com.termux/files/usr/bin/sh\n" +
+                "# " + AM_PATCH_MARKER.substring(2) + "\n" +
+                "# Fixes termux-api: com.termux.api was a separate APK,\n" +
+                "# now integrated into com.termux main app.\n" +
+                "\n" +
+                "REAL_AM=\"" + realAmPath + "\"\n" +
+                "CMD=\"$1\"\n" +
+                "shift\n" +
+                "IS_BROADCAST=0\n" +
+                "[ \"$CMD\" = \"broadcast\" ] && IS_BROADCAST=1\n" +
+                "\n" +
+                "FILTERED=\"\"\n" +
+                "SKIP=0\n" +
+                "for ARG in \"$@\"; do\n" +
+                "    if [ \"$SKIP\" = \"1\" ]; then\n" +
+                "        SKIP=0\n" +
+                "        continue\n" +
+                "    fi\n" +
+                "    if [ \"$IS_BROADCAST\" = \"1\" ] && [ \"$ARG\" = \"--user\" ]; then\n" +
+                "        SKIP=1\n" +
+                "        continue\n" +
+                "    fi\n" +
+                "    case \"$ARG\" in\n" +
+                "        com.termux.api/.?*)\n" +
+                "            ARG=\"com.termux/com.termux.api.${ARG#com.termux.api/.}\"\n" +
+                "            ;;\n" +
+                "    esac\n" +
+                "    FILTERED=\"$FILTERED $ARG\"\n" +
+                "done\n" +
+                "\n" +
+                "exec \"$REAL_AM\" \"$CMD\" $FILTERED\n";
+
+            try (FileOutputStream out = new FileOutputStream(amWrapper)) {
+                out.write(script.getBytes());
+            }
+            Os.chmod(amWrapper.getAbsolutePath(), 0700);
+            Logger.logInfo(LOG_TAG, "Patched am wrapper installed.");
+        } catch (Exception e) {
+            Logger.logStackTraceWithMessage(LOG_TAG, "Failed to patch am wrapper", e);
         }
     }
 

@@ -9,6 +9,7 @@
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always" />
 
+    <item android:id="@+id/menu_open_in_terminal" android:title="@string/action_open_in_terminal" android:visible="false" />
     <item android:id="@+id/menu_new_folder" android:title="@string/action_new_folder" android:visible="false" />
     <item android:id="@+id/menu_new_file" android:title="@string/action_new_file" android:visible="false" />
     <item android:id="@+id/menu_paste" android:title="Paste" android:visible="false" />
