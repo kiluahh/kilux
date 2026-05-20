@@ -8,6 +8,8 @@ import androidx.preference.PreferenceDataStore;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceManager;
 
+import androidx.preference.SeekBarPreference;
+
 import com.termux.R;
 import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
 
@@ -23,6 +25,16 @@ public class TerminalViewPreferencesFragment extends PreferenceFragmentCompat {
         preferenceManager.setPreferenceDataStore(TerminalViewPreferencesDataStore.getInstance(context));
 
         setPreferencesFromResource(R.xml.termux_terminal_view_preferences, rootKey);
+
+        TermuxAppSharedPreferences prefs = TermuxAppSharedPreferences.build(context, true);
+        if (prefs != null) {
+            SeekBarPreference fontSizePref = findPreference("fontsize");
+            if (fontSizePref != null) {
+                fontSizePref.setMin(prefs.getMinFontSize());
+                fontSizePref.setMax(prefs.getMaxFontSize());
+                fontSizePref.setDefaultValue(prefs.getDefaultFontSize());
+            }
+        }
     }
 
 }
@@ -71,6 +83,31 @@ class TerminalViewPreferencesDataStore extends PreferenceDataStore {
                 return mPreferences.isTerminalMarginAdjustmentEnabled();
             default:
                 return false;
+        }
+    }
+
+    @Override
+    public void putInt(String key, int value) {
+        if (mPreferences == null || key == null) return;
+
+        switch (key) {
+            case "fontsize":
+                mPreferences.setFontSize(value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public int getInt(String key, int defValue) {
+        if (mPreferences == null) return defValue;
+
+        switch (key) {
+            case "fontsize":
+                return mPreferences.getFontSize();
+            default:
+                return defValue;
         }
     }
 

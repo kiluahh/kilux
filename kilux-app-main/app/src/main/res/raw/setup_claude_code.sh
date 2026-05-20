@@ -284,13 +284,19 @@ if [ ! -f "$REAL" ]; then
     exit 1
 fi
 
-# proot -0 disables seccomp, preventing "Bad system call" kills
-# on older Android kernels (<10) that block clone3/statx.
-if command -v proot >/dev/null 2>&1; then
+# Try direct execution first. On old Android kernels (<10) that block
+# clone3/statx via seccomp, the process gets SIGSYS (exit 159).
+# In that case, retry with proot -0 to disable the seccomp filter.
+"$LD" --library-path "$GLIBC_LIB" "$REAL" "$@"
+EXIT_CODE=$?
+
+# Restore terminal — Claude Code uses raw mode and may not clean up.
+stty sane 2>/dev/null || true
+
+if [ $EXIT_CODE -eq 159 ] && command -v proot >/dev/null 2>&1; then
     exec proot -0 "$LD" --library-path "$GLIBC_LIB" "$REAL" "$@"
-else
-    exec "$LD" --library-path "$GLIBC_LIB" "$REAL" "$@"
 fi
+exit $EXIT_CODE
 WRAPPER_EOF
 chmod 755 "$CLAUDE_DIR/bin/claude.exe"
 ok "wrapper installed"

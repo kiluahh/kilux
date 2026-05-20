@@ -203,6 +203,9 @@
                     It should be enabled to try to fix the issue where soft keyboard covers part of extra keys/terminal view.
                     If it causes screen flickering on your devices, then disable it. (Default)</string>
 
+                <!-- Font Size -->
+                <string name="termux_terminal_view_fontsize_title">Font Size</string>
+                <string name="termux_terminal_view_fontsize_summary">Adjust terminal default font size (px)</string>
 
 
     <!-- Termux:API App Preferences -->

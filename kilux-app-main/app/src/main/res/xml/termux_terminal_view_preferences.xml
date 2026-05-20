@@ -10,6 +10,13 @@
             app:summaryOn="@string/termux_terminal_view_terminal_margin_adjustment_on"
             app:title="@string/termux_terminal_view_terminal_margin_adjustment_title" />
 
+        <SeekBarPreference
+            app:key="fontsize"
+            app:title="@string/termux_terminal_view_fontsize_title"
+            app:summary="@string/termux_terminal_view_fontsize_summary"
+            app:seekBarIncrement="2"
+            app:showSeekBarValue="true" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>
