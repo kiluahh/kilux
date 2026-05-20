@@ -244,57 +244,37 @@ echo "=== 5. Install launch wrapper ==="
 #-------------------------------------------------------------------------------
 cat > "$CLAUDE_DIR/bin/claude.exe" << 'WRAPPER_EOF'
 #!/data/data/com.termux/files/usr/bin/bash
-#===============================================================================
-# Claude Code launcher for Termux (Android)
-# Routes the glibc-linked native binary through glibc ld-linux + proot.
-#===============================================================================
 
-# Termux injects libtermux-exec-ld-preload.so (bionic) via LD_PRELOAD.
-# glibc ld-linux cannot load bionic libraries — must unset.
 unset LD_PRELOAD
 
 PREFIX="/data/data/com.termux/files/usr"
 GLIBC_LIB="$PREFIX/glibc/lib"
+BIONIC_LIB="$PREFIX/lib"
 
 ARCH=$(uname -m)
 case "$ARCH" in
     x86_64|i686|i386)
         LD="$GLIBC_LIB/ld-linux-x86-64.so.2"
-        REAL="$PREFIX/lib/node_modules/@anthropic-ai/claude-code-linux-x64/claude"
-        ;;
+        REAL="$PREFIX/lib/node_modules/@anthropic-ai/claude-code-linux-x64/claude" ;;
     aarch64|armv8l|armv7l)
         LD="$GLIBC_LIB/ld-linux-aarch64.so.1"
-        REAL="$PREFIX/lib/node_modules/@anthropic-ai/claude-code-linux-arm64/claude"
-        ;;
-    *)
-        echo "Unsupported architecture: $ARCH" >&2
-        exit 1
-        ;;
+        REAL="$PREFIX/lib/node_modules/@anthropic-ai/claude-code-linux-arm64/claude" ;;
+    *) echo "Unsupported: $ARCH" >&2; exit 1 ;;
 esac
 
-if [ ! -f "$LD" ]; then
-    echo "glibc ld-linux not found: $LD" >&2
-    echo "Re-run the Claude Code installer script." >&2
-    exit 1
-fi
+[ -f "$LD" ]   || { echo "ld not found: $LD" >&2; exit 1; }
+[ -f "$REAL" ] || { echo "binary not found: $REAL" >&2; exit 1; }
 
-if [ ! -f "$REAL" ]; then
-    echo "Claude Code binary not found: $REAL" >&2
-    echo "Re-run the Claude Code installer script." >&2
-    exit 1
-fi
-
-# Try direct execution first. On old Android kernels (<10) that block
-# clone3/statx via seccomp, the process gets SIGSYS (exit 159).
-# In that case, retry with proot -0 to disable the seccomp filter.
-"$LD" --library-path "$GLIBC_LIB" "$REAL" "$@"
+# Bionic libs first so child processes (pkg, termux-api) use bionic.
+# Glibc libs second so the Claude Code binary finds libc.so.6 etc.
+"$LD" --library-path "$BIONIC_LIB:$GLIBC_LIB" "$REAL" "$@"
 EXIT_CODE=$?
-
-# Restore terminal — Claude Code uses raw mode and may not clean up.
 stty sane 2>/dev/null || true
 
 if [ $EXIT_CODE -eq 159 ] && command -v proot >/dev/null 2>&1; then
-    exec proot -0 "$LD" --library-path "$GLIBC_LIB" "$REAL" "$@"
+    proot -0 -i $(id -u):$(id -g) \
+        "$LD" --library-path "$BIONIC_LIB:$GLIBC_LIB" "$REAL" "$@"
+    stty sane 2>/dev/null || true
 fi
 exit $EXIT_CODE
 WRAPPER_EOF
@@ -312,15 +292,12 @@ var fs = require('fs');
 var c = fs.readFileSync('$CLI_WRAPPER', 'utf8');
 var changes = 0;
 
-// 1. Disable built-in android platform handler (returns 'linux-*-android'
-//    which has no matching npm binary package).
 var old1 = \"if (platform === 'android') {\";
 if (c.indexOf(old1) !== -1) {
     c = c.replace(old1, \"if (false /* android->linux */) {\");
     changes++;
 }
 
-// 2. Map 'android' to 'linux' in getPlatformKey().
 if (c.indexOf(\"platform === 'linux' || platform === 'android'\") === -1) {
     var old2 = \"if (platform === 'linux')\";
     if (c.indexOf(old2) !== -1) {
@@ -329,7 +306,6 @@ if (c.indexOf(\"platform === 'linux' || platform === 'android'\") === -1) {
     }
 }
 
-// 3. detectMusl: return false for android (we use glibc, not musl).
 var old3 = \"if (process.platform !== 'linux' && process.platform !== 'android') {\";
 if (c.indexOf(old3) !== -1) {
     c = c.replace(old3,
@@ -337,13 +313,10 @@ if (c.indexOf(old3) !== -1) {
     changes++;
 }
 
-// 4. main(): route through glibc ld-linux + unset LD_PRELOAD.
 if (c.indexOf('const isAndroid = process.platform') === -1) {
     var old4 = \"const result = spawnSync(binaryPath, process.argv.slice(2), {\n    stdio: 'inherit',\n    env: { ...process.env, CLAUDE_CODE_INSTALLED_VIA_NPM_WRAPPER: '1' },\n  })\";
     var new4 = [
         \"const isAndroid = process.platform === 'android'\",
-        \"// On Android/Termux, route the glibc binary through glibc ld-linux\",
-        \"// and unset LD_PRELOAD (avoids mixing bionic + glibc libs).\",
         \"let cmd, args, spawnEnv\",
         \"if (isAndroid) {\",
         \"  const glibcPrefix = '/data/data/com.termux/files/usr/glibc'\",
@@ -391,17 +364,12 @@ fi
 echo "=== 8. Verify installation ==="
 #-------------------------------------------------------------------------------
 if ! command -v claude >/dev/null 2>&1; then
-    die "'claude' command not found on PATH.\n       Expected symlink: $PREFIX/bin/claude -> $CLAUDE_DIR/bin/claude.exe"
+    die "'claude' command not found on PATH."
 fi
 
 CLAUDE_OUTPUT=$(claude --version 2>&1) || {
     echo "claude --version failed:" >&2
     echo "$CLAUDE_OUTPUT" >&2
-    echo ""
-    echo "Common causes:" >&2
-    echo "  'Bad system call'  -> proot not installed or wrapper broken. Run: pkg install proot" >&2
-    echo "  'No such file'     -> glibc ld-linux missing. Run: find $GLIBC_LIB -name 'ld-linux*'" >&2
-    echo "  'cannot open shared object file' -> glibc libs missing. Run: ls $GLIBC_LIB/libc.so.6" >&2
     die "Installation verification failed."
 }
 
@@ -409,9 +377,4 @@ echo ""
 echo "=============================================="
 echo "  Claude Code installed successfully!"
 echo "  Version: $CLAUDE_OUTPUT"
-echo ""
-echo "  Run: claude"
-echo "  First run? Set your API key:"
-echo "    export ANTHROPIC_API_KEY='sk-ant-...'"
-echo "  (Add to ~/.bashrc for persistence)"
 echo "=============================================="
