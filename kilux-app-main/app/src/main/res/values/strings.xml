@@ -229,6 +229,10 @@
 
 
 
+    <!-- Install Claude Code Preference -->
+    <string name="install_claude_code_preference_title">Install Claude Code</string>
+    <string name="install_claude_code_preference_summary">One-click install Claude Code AI assistant in Termux</string>
+
     <!-- About Preference -->
     <string name="about_preference_title">About</string>
 

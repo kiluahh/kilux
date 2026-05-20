@@ -10,6 +10,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -255,6 +257,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         registerForContextMenu(mTerminalView);
 
         FileReceiverActivity.updateFileReceiverActivityComponentsState(this);
+
+        // Request overlay permission on first launch (required for background terminal)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            !Settings.canDrawOverlays(this) &&
+            !mPreferences.isOverlayPermissionRequested()) {
+            mPreferences.setOverlayPermissionRequested(true);
+            Intent permIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:" + getPackageName()));
+            startActivity(permIntent);
+        }
 
         try {
             // Start the {@link TermuxService} and make it run regardless of who is bound to it

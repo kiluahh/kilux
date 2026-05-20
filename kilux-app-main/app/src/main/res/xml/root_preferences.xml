@@ -35,6 +35,12 @@
         app:fragment="com.termux.app.fragments.settings.TermuxWidgetPreferencesFragment"/>
 
     <Preference
+        app:key="install_claude_code"
+        app:title="@string/install_claude_code_preference_title"
+        app:summary="@string/install_claude_code_preference_summary"
+        app:persistent="false"/>
+
+    <Preference
         app:key="about"
         app:title="@string/about_preference_title"
         app:persistent="false"/>

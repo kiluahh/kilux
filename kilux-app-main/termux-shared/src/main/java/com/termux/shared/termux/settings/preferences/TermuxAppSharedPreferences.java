@@ -122,6 +122,16 @@ public class TermuxAppSharedPreferences extends AppSharedPreferences {
 
 
 
+    private static final String KEY_OVERLAY_PERMISSION_REQUESTED = "overlay_permission_requested";
+
+    public boolean isOverlayPermissionRequested() {
+        return SharedPreferenceUtils.getBoolean(mSharedPreferences, KEY_OVERLAY_PERMISSION_REQUESTED, false);
+    }
+
+    public void setOverlayPermissionRequested(boolean value) {
+        SharedPreferenceUtils.setBoolean(mSharedPreferences, KEY_OVERLAY_PERMISSION_REQUESTED, value, false);
+    }
+
     public static int[] getDefaultFontSizes(Context context) {
         float dipInPixels = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, context.getResources().getDisplayMetrics());
 
