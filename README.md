@@ -4,6 +4,19 @@
 
 > 分支：`kilux-termux`　主工程目录：`kilux-app-main/`（5 个 Gradle 模块）
 
+## 下载
+
+[![最新版本](https://img.shields.io/github/v/release/kiluahh/kilux?style=flat-square&label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/kiluahh/kilux/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/kiluahh/kilux/total?style=flat-square&label=%E4%B8%8B%E8%BD%BD%E9%87%8F)](https://github.com/kiluahh/kilux/releases)
+[![License](https://img.shields.io/badge/license-GPLv3-blue?style=flat-square)](kilux-app-main/LICENSE.md)
+
+**安装包在 [Releases](https://github.com/kiluahh/kilux/releases/latest)**，下载 `termux-app_apt-android-7-release_universal.apk` 直接安装即可（通用包，含 arm64-v8a / armeabi-v7a / x86 / x86_64 四种架构，无需 root）。
+
+- 包名 `com.termux`，应用名 **Kilux**，最低 Android 5.0（API 21）
+- 与原版 Termux / F-Droid 版包名相同但**签名不同**，两者不能共存，也无法覆盖安装；需要保留原版数据请先备份
+- 首次启动会联网解压 bootstrap，装好即可 `pkg install` 任意软件包
+- 同一签名的新版本可直接覆盖升级
+
 ## 截图
 
 | 主界面 | 常用符号页 |
