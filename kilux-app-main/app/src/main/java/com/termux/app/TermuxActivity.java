@@ -48,6 +48,7 @@ import com.termux.shared.termux.settings.preferences.TermuxAppSharedPreferences;
 import com.termux.app.terminal.TermuxSessionsListViewController;
 import com.termux.app.terminal.io.TerminalToolbarViewPager;
 import com.termux.app.terminal.TermuxTerminalViewClient;
+import com.termux.shared.termux.extrakeys.ExtraKeysInfo;
 import com.termux.shared.termux.extrakeys.ExtraKeysView;
 import com.termux.shared.termux.interact.TextInputDialogUtils;
 import com.termux.shared.logger.Logger;
@@ -552,9 +553,27 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
         layoutParams.height = Math.round(mTerminalToolbarDefaultHeight *
-            (mTermuxTerminalExtraKeys.getExtraKeysInfo() == null ? 0 : mTermuxTerminalExtraKeys.getExtraKeysInfo().getMatrix().length) *
+            getTerminalToolbarRowCount() *
             mProperties.getTerminalToolbarHeightScaleFactor());
         terminalToolbarViewPager.setLayoutParams(layoutParams);
+    }
+
+    /**
+     * Get the maximum number of rows of all the pages of the terminal toolbar, since the height of
+     * the toolbar is shared by all of them. The default is 2 rows for both the extra keys page and
+     * the symbols page.
+     */
+    private int getTerminalToolbarRowCount() {
+        if (mTermuxTerminalExtraKeys == null) return 0;
+
+        int rowCount = 0;
+        ExtraKeysInfo extraKeysInfo = mTermuxTerminalExtraKeys.getExtraKeysInfo();
+        if (extraKeysInfo != null) rowCount = extraKeysInfo.getMatrix().length;
+
+        ExtraKeysInfo symbolsExtraKeysInfo = mTermuxTerminalExtraKeys.getSymbolsExtraKeysInfo();
+        if (symbolsExtraKeysInfo != null) rowCount = Math.max(rowCount, symbolsExtraKeysInfo.getMatrix().length);
+
+        return rowCount;
     }
 
     public void toggleTerminalToolbar() {
@@ -873,11 +892,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     public boolean isTerminalViewSelected() {
-        return getTerminalToolbarViewPager().getCurrentItem() == 0;
+        return getTerminalToolbarViewPager().getCurrentItem() != TerminalToolbarViewPager.PageAdapter.PAGE_TEXT_INPUT;
     }
 
     public boolean isTerminalToolbarTextInputViewSelected() {
-        return getTerminalToolbarViewPager().getCurrentItem() == 1;
+        return getTerminalToolbarViewPager().getCurrentItem() == TerminalToolbarViewPager.PageAdapter.PAGE_TEXT_INPUT;
     }
 
 

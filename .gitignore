@@ -1,1 +1,9 @@
 kilux-ai(chamberlain)
+
+# Local git worktrees created by coding agents
+.claude/worktrees/
+
+# OS / editor noise
+Thumbs.db
+desktop.ini
+.DS_Store

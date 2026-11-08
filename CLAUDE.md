@@ -78,6 +78,7 @@ Five Gradle modules:
 - Added `BASED_ON` field in About page showing "Termux 0.118.0"
 - Added `KILUX_GITHUB_REPO_URL` constant for GitHub attribution
 - Top toolbar with hamburger menu opens session drawer
+- Terminal toolbar has 3 pages: extra keys → common symbols (14 symbol keys) → single-line text input
 - Bottom toolbar divider (thin white line)
 - Default extra keys: SHIFT replaces `-`
 - Custom welcome message written to `$PREFIX/etc/motd` after bootstrap install

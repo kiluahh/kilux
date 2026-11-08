@@ -22,7 +22,17 @@ import org.json.JSONException;
 
 public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
 
+    /**
+     * The extra keys of the symbols page that is shown between the extra keys page and the text
+     * input page of the terminal toolbar. The matrix must keep the same 2x7 grid as
+     * {@link TermuxPropertyConstants#DEFAULT_IVALUE_EXTRA_KEYS}, since the height of the toolbar
+     * is shared by all of its pages. The backslash is defined with the "BACKSLASH" alias because a
+     * literal backslash would have to be escaped in the JSON string.
+     */
+    public static final String SYMBOLS_EXTRA_KEYS = "[['+','=','%','^','`','$','BACKSLASH'], ['[',']','{','}','|','<','>']]";
+
     private ExtraKeysInfo mExtraKeysInfo;
+    private ExtraKeysInfo mSymbolsExtraKeysInfo;
 
     final TermuxActivity mActivity;
     final TermuxTerminalViewClient mTermuxTerminalViewClient;
@@ -40,6 +50,29 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
         mTermuxTerminalSessionActivityClient = termuxTerminalSessionActivityClient;
 
         setExtraKeys();
+        setSymbolsExtraKeys();
+    }
+
+
+    /**
+     * Set the extra keys of the symbols page.
+     */
+    private void setSymbolsExtraKeys() {
+        try {
+            mSymbolsExtraKeysInfo = buildSymbolsExtraKeysInfo();
+        } catch (JSONException e) {
+            Logger.logStackTraceWithMessage(LOG_TAG, "Could not create the \"" + SYMBOLS_EXTRA_KEYS + "\" extra keys: ", e);
+            mSymbolsExtraKeysInfo = null;
+        }
+    }
+
+    /**
+     * Build the {@link ExtraKeysInfo} for {@link #SYMBOLS_EXTRA_KEYS}.
+     */
+    @NonNull
+    public static ExtraKeysInfo buildSymbolsExtraKeysInfo() throws JSONException {
+        return new ExtraKeysInfo(SYMBOLS_EXTRA_KEYS, TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS_STYLE,
+            ExtraKeysConstants.CONTROL_CHARS_ALIASES);
     }
 
 
@@ -79,6 +112,13 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
 
     public ExtraKeysInfo getExtraKeysInfo() {
         return mExtraKeysInfo;
+    }
+
+    /**
+     * Get the {@link ExtraKeysInfo} of the symbols page.
+     */
+    public ExtraKeysInfo getSymbolsExtraKeysInfo() {
+        return mSymbolsExtraKeysInfo;
     }
 
     @SuppressLint("RtlHardcoded")

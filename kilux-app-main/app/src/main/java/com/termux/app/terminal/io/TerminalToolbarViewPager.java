@@ -18,6 +18,14 @@ public class TerminalToolbarViewPager {
 
     public static class PageAdapter extends PagerAdapter {
 
+        /** The page with the extra keys defined by the "extra-keys" property. */
+        public static final int PAGE_EXTRA_KEYS = 0;
+        /** The page with the common symbols. */
+        public static final int PAGE_SYMBOLS = 1;
+        /** The page with the single line text input. */
+        public static final int PAGE_TEXT_INPUT = 2;
+        public static final int PAGE_COUNT = 3;
+
         final TermuxActivity mActivity;
         String mSavedTextInput;
 
@@ -28,7 +36,7 @@ public class TerminalToolbarViewPager {
 
         @Override
         public int getCount() {
-            return 2;
+            return PAGE_COUNT;
         }
 
         @Override
@@ -41,7 +49,7 @@ public class TerminalToolbarViewPager {
         public Object instantiateItem(@NonNull ViewGroup collection, int position) {
             LayoutInflater inflater = LayoutInflater.from(mActivity);
             View layout;
-            if (position == 0) {
+            if (position == PAGE_EXTRA_KEYS) {
                 layout = inflater.inflate(R.layout.view_terminal_toolbar_extra_keys, collection, false);
                 ExtraKeysView extraKeysView = (ExtraKeysView) layout;
                 extraKeysView.setExtraKeysViewClient(mActivity.getTermuxTerminalExtraKeys());
@@ -54,6 +62,17 @@ public class TerminalToolbarViewPager {
                 if (mActivity.getProperties().isUsingFullScreen() && mActivity.getProperties().isUsingFullScreenWorkAround()) {
                     FullScreenWorkAround.apply(mActivity);
                 }
+
+            } else if (position == PAGE_SYMBOLS) {
+                // The symbols page is not set with {@link TermuxActivity#setExtraKeysView} since
+                // that reference is used to read the state of the CTRL, ALT, SHIFT and FN buttons
+                // that only exist on the extra keys page.
+                layout = inflater.inflate(R.layout.view_terminal_toolbar_symbols, collection, false);
+                ExtraKeysView symbolsView = (ExtraKeysView) layout;
+                symbolsView.setExtraKeysViewClient(mActivity.getTermuxTerminalExtraKeys());
+                symbolsView.setButtonTextAllCaps(mActivity.getProperties().shouldExtraKeysTextBeAllCaps());
+                symbolsView.reload(mActivity.getTermuxTerminalExtraKeys().getSymbolsExtraKeysInfo(),
+                    mActivity.getTerminalToolbarDefaultHeight());
 
             } else {
                 layout = inflater.inflate(R.layout.view_terminal_toolbar_text_input, collection, false);
@@ -104,11 +123,11 @@ public class TerminalToolbarViewPager {
 
         @Override
         public void onPageSelected(int position) {
-            if (position == 0) {
-                mActivity.getTerminalView().requestFocus();
-            } else {
+            if (position == PageAdapter.PAGE_TEXT_INPUT) {
                 final EditText editText = mTerminalToolbarViewPager.findViewById(R.id.terminal_toolbar_text_input);
                 if (editText != null) editText.requestFocus();
+            } else {
+                mActivity.getTerminalView().requestFocus();
             }
         }
 
